@@ -2,30 +2,51 @@
 const chatForm = document.getElementById("chatForm");
 const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
-const chatEndpoint = "https://api.openai.com/v1/chat/completions"; // Fixed typo: vi -> v1
+// Replace this with your actual Cloudflare Worker URL
+const chatEndpoint = "https://loreal-chatbot.emit1144.workers.dev/";
 
-// Set initial message
-chatWindow.textContent = "👋 Hello! How can I help you today?";
+// Conversation context tracking
+let conversationHistory = [
+  {
+    role: "system",
+    content:
+      "You are a helpful assistant for L'Oréal customers. You can only answer questions about L'Oréal products, skincare, haircare, makeup, beauty tips, and cosmetics. If someone asks about topics unrelated to L'Oréal or beauty (like sports, politics, etc.) politely decline and redirect to asking about L'Oréal-related queries. Remember the user's name if they tell you, and refer to previous conversations naturally. Be personable and build rapport.",
+  },
+];
 
-// Function to send user input to OpenAI and fetch response
+// Set initial message with styling
+chatWindow.innerHTML = `<div class="initial-message">👋 Hello Gorgeous! How can I help you today?</div>`;
+
+// Function to clear conversation history (optional feature)
+function clearConversationHistory() {
+  conversationHistory = [
+    {
+      role: "system",
+      content:
+        "You are a helpful assistant for L'Oréal customers. You can only answer questions about L'Oréal products, skincare, haircare, makeup, beauty tips, and cosmetics. If someone asks about topics unrelated to L'Oréal or beauty (like sports, politics, etc.) politely decline and redirect to asking about L'Oréal-related queries. Remember the user's name if they tell you, and refer to previous conversations naturally. Be personable and build rapport.",
+    },
+  ];
+  console.log("Conversation history cleared");
+}
+
+// Function to send user input to Cloudflare Worker (which calls OpenAI)
 async function getAIResponse(userMessage) {
   try {
+    // Add user message to conversation history
+    conversationHistory.push({
+      role: "user",
+      content: userMessage,
+    });
+
     const response = await fetch(chatEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`, // Use the API key from secrets.js
+        // No Authorization header needed - the Worker handles the API key
       },
       body: JSON.stringify({
-        model: "gpt-4o", // Use gpt-4o model as specified in instructions
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant for L'Oréal customers.",
-          },
-          { role: "user", content: userMessage },
-        ],
-        temperature: 0.7,
+        // Send entire conversation history to maintain context
+        messages: conversationHistory,
       }),
     });
 
@@ -36,10 +57,18 @@ async function getAIResponse(userMessage) {
       throw new Error(`API Error: ${data.error?.message || "Unknown error"}`);
     }
 
-    return data.choices[0].message.content;
+    const botReply = data.choices[0].message.content;
+
+    // Add bot response to conversation history
+    conversationHistory.push({
+      role: "assistant",
+      content: botReply,
+    });
+
+    return botReply;
   } catch (error) {
     console.error("Error calling OpenAI API:", error);
-    return "Sorry, I encountered an error. Please try again.";
+    return "Sorry, L'Oréal servers down. Come back later.";
   }
 }
 
@@ -62,15 +91,20 @@ chatForm.addEventListener("submit", async (e) => {
   userInput.value = "";
 
   // Show loading message with bot styling class
-  chatWindow.innerHTML += `<div class="msg bot"><strong>L'OREAL Advisor:</strong> <em>Thinking...</em></div>`;
+  chatWindow.innerHTML += `<div class="msg bot"><strong>L'OREAL Advisor:</strong> <em>Typing...</em></div>`;
 
   // Get AI response
   const botReply = await getAIResponse(userMessage);
 
   // Remove loading message and add actual response
   const messages = chatWindow.children;
-  messages[messages.length - 1].innerHTML = `<strong>L'OREAL Advisor:</strong> ${botReply}`;
+  messages[
+    messages.length - 1
+  ].innerHTML = `<strong>L'OREAL Advisor:</strong> ${botReply}`;
 
-  // Scroll to bottom of chat
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  // Smooth scroll to bottom of chat
+  chatWindow.scrollTo({
+    top: chatWindow.scrollHeight,
+    behavior: "smooth",
+  });
 });
