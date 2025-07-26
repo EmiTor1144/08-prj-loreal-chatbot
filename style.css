@@ -21,6 +21,10 @@ body {
   justify-content: center;
 }
 
+chatWindow.textContent {
+  margin-bottom: 10px;
+}
+
 .page-wrapper {
   width: 90%;
   max-width: 900px;
@@ -52,6 +56,14 @@ body {
   overflow-y: auto;
   background: #f8f8f8;
   white-space: pre-line;
+  scroll-behavior: smooth;
+}
+
+/* Initial welcome message styling */
+.initial-message {
+  margin-bottom: 20px;
+  font-weight: 500;
+  color: #333;
 }
 
 /* messages */
