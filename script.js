@@ -10,12 +10,22 @@ let conversationHistory = [
   {
     role: "system",
     content:
-      "You are a helpful assistant for L'Oréal customers. You can only answer questions about L'Oréal products, skincare, haircare, makeup, beauty tips, and cosmetics. If someone asks about topics unrelated to L'Oréal or beauty (like sports, politics, etc.) politely decline and redirect to asking about L'Oréal-related queries. Remember the user's name if they tell you, and refer to previous conversations naturally. Be personable and build rapport.",
+      "You are a helpful assistant for L'Oréal customers. You can only answer questions about L'Oréal products, skincare, haircare, makeup, beauty tips, and cosmetics. If someone asks about topics unrelated to L'Oréal or beauty (like sports, politics, etc.) politely decline and redirect to asking about L'Oréal-related queries. Remember the user's name if they tell you, and refer to previous conversations naturally. Be personable and build rapport. When mentioning specific L'Oréal product names, wrap them in ** symbols like **True Match Foundation** to highlight them.",
   },
 ];
 
 // Set initial message with styling
 chatWindow.innerHTML = `<div class="initial-message">👋 Hello Gorgeous! How can I help you today?</div>`;
+
+// Function to highlight text within ** symbols in gold
+function highlightLorealProducts(text) {
+  // Use regex to find text between ** symbols and replace with highlighted version
+  const highlightedText = text.replace(
+    /\*\*(.*?)\*\*/g,
+    '<span class="product-highlight">$1</span>'
+  );
+  return highlightedText;
+}
 
 // Function to clear conversation history (optional feature)
 function clearConversationHistory() {
@@ -23,7 +33,7 @@ function clearConversationHistory() {
     {
       role: "system",
       content:
-        "You are a helpful assistant for L'Oréal customers. You can only answer questions about L'Oréal products, skincare, haircare, makeup, beauty tips, and cosmetics. If someone asks about topics unrelated to L'Oréal or beauty (like sports, politics, etc.) politely decline and redirect to asking about L'Oréal-related queries. Remember the user's name if they tell you, and refer to previous conversations naturally. Be personable and build rapport.",
+        "You are a helpful assistant for L'Oréal customers. You can only answer questions about L'Oréal products, skincare, haircare, makeup, beauty tips, and cosmetics. If someone asks about topics unrelated to L'Oréal or beauty (like sports, politics, etc.) politely decline and redirect to asking about L'Oréal-related queries. Remember the user's name if they tell you, and refer to previous conversations naturally. Be personable and build rapport. When mentioning specific L'Oréal product names, wrap them in ** symbols like **True Match Foundation** to highlight them.",
     },
   ];
   console.log("Conversation history cleared");
@@ -84,8 +94,9 @@ chatForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Add user message to chat window with styling class
-  chatWindow.innerHTML += `<div class="msg user"><strong>You:</strong> ${userMessage}</div>`;
+  // Add user message to chat window with styling class and product highlighting
+  const highlightedUserMessage = highlightLorealProducts(userMessage);
+  chatWindow.innerHTML += `<div class="msg user"><strong>You:</strong> ${highlightedUserMessage}</div>`;
 
   // Clear input field
   userInput.value = "";
@@ -96,11 +107,14 @@ chatForm.addEventListener("submit", async (e) => {
   // Get AI response
   const botReply = await getAIResponse(userMessage);
 
-  // Remove loading message and add actual response
+  // Highlight L'Oréal products in bot reply
+  const highlightedBotReply = highlightLorealProducts(botReply);
+
+  // Remove loading message and add actual response with product highlighting
   const messages = chatWindow.children;
   messages[
     messages.length - 1
-  ].innerHTML = `<strong>L'OREAL Advisor:</strong> ${botReply}`;
+  ].innerHTML = `<strong>L'OREAL Advisor:</strong> ${highlightedBotReply}`;
 
   // Smooth scroll to bottom of chat
   chatWindow.scrollTo({
