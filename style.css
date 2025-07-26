@@ -57,6 +57,7 @@ chatWindow.textContent {
   background: #f8f8f8;
   white-space: pre-line;
   scroll-behavior: smooth;
+  scroll-snap-type: y mandatory; /* This enables vertical snap scrolling with mandatory snapping */
 }
 
 /* Initial welcome message styling */
@@ -66,6 +67,12 @@ chatWindow.textContent {
   color: #333;
 }
 
+/* L'Oréal product name highlighting */
+.product-highlight {
+  color: #e3a535;
+  font-weight: 600;
+}
+
 /* messages */
 .msg {
   margin-bottom: 14px;
@@ -73,6 +80,7 @@ chatWindow.textContent {
   padding: 12px;
   border-radius: 8px;
   max-width: 80%;
+  scroll-snap-type: start;
 }
 
 /* User messages - aligned to the right with blue styling */
